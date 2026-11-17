@@ -13,7 +13,19 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: false,
-      manifest: false,
+      manifest: {
+        name: "Unbeatable",
+        short_name: "Unbeatable",
+        lang: "it",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#06070d",
+        theme_color: "#06070d",
+        icons: [
+          { src: "apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+          { src: "icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+        ],
+      },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2,mp3}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

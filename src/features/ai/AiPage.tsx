@@ -101,7 +101,7 @@ export function AiPage() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-9rem)] max-w-3xl flex-col gap-3">
+    <div className="mx-auto flex h-[calc(100dvh-10rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] md:h-[calc(100dvh-9rem)] max-w-3xl flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <PageHeader title="Coach AI" description="Chiedi qualsiasi cosa: spiegazioni, interrogazioni, piani di studio, consigli. Conosce le tue materie e attività." />
         <div className="flex shrink-0 gap-1">

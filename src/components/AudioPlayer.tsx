@@ -82,7 +82,7 @@ export function AudioPlayer() {
   if (!src || hidden) return null;
   const a = audio.current;
   return (
-    <div className="fixed right-4 bottom-24 z-40 flex items-center gap-1 rounded-full border border-line-strong bg-elevated/95 py-1 pr-1 pl-3 text-xs text-muted shadow-lg md:bottom-6">
+    <div className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex items-center gap-1 rounded-full border border-line-strong bg-elevated/95 py-1 pr-1 pl-3 text-xs text-muted shadow-lg md:bottom-6">
       <Music className="size-3.5" />
       <span className="mr-1">{playing ? "In riproduzione" : "In pausa"}</span>
       <button type="button" aria-label={playing ? "Pausa" : "Riproduci"} onClick={() => (playing ? a?.pause() : a?.play())} className="grid size-7 place-items-center rounded-full hover:bg-white/10 hover:text-fg">

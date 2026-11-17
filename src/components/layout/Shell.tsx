@@ -234,7 +234,7 @@ export function Shell() {
       <div className="md:pl-[240px]">
         <MobileBar />
         <AudioPlayer />
-        <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-28 sm:px-6 md:px-10 md:pt-9 md:pb-12">
+        <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 md:px-10 md:pt-9 md:pb-12">
           <div className="md:hidden">
             <FocusPill className="mb-4" />
           </div>

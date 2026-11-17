@@ -153,3 +153,12 @@
 [role="checkbox"][aria-checked="true"] { animation: pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
 main .card { transition: border-color 0.2s ease, transform 0.2s ease; }
 @media (hover: hover) { main .card:hover { border-color: var(--color-line-strong); } }
+
+/* ── iPhone ── */
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+/* iOS zooms into inputs under 16px: keep them at 16px on touch screens. */
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px !important; }
+}
+nav a, button { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
