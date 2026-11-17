@@ -3,6 +3,10 @@
   "appName": "Unbeatable",
   "webDir": "dist",
   "backgroundColor": "#06070d",
-  "ios": { "contentInset": "never", "backgroundColor": "#06070d" },
+  "server": {
+    "url": "https://truthhunterdeveloper.github.io/unbeatable/",
+    "errorPath": "index.html"
+  },
+  "ios": { "contentInset": "never", "backgroundColor": "#06070d", "limitsNavigationsToAppBoundDomains": true },
   "plugins": { "LocalNotifications": { "iconColor": "#8b93ff" } }
 }
