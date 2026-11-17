@@ -14,6 +14,7 @@ import { goalProgress } from "@/lib/domains";
 import { weekScore } from "@/lib/analytics";
 import { EveningReflection } from "@/features/domains/PersonalPage";
 import { AyahCard, QuoteCard } from "@/components/QuoteCard";
+import { BlockChecks } from "./BlockChecks";
 import type { QuoteArea } from "@/lib/quotes";
 import { MiniBarChart } from "@/components/charts";
 import { TaskRow, useTaskActions } from "@/features/tasks/TaskRow";
@@ -60,6 +61,7 @@ export function CommandCenter() {
         </div>
       </header>
 
+      <BlockChecks />
       <AyahCard className="mb-3" />
       <QuoteCard
         className="mb-5"

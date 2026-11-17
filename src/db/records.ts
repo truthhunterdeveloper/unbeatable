@@ -357,6 +357,18 @@ export const RECORD_TYPES: Record<string, RecordTypeDef> = {
   },
 
   /* ── Personal development ── */
+  blockCheck: {
+    type: "blockCheck",
+    label: "Check dei blocchi",
+    noun: "check",
+    dateLabel: "Data",
+    fields: [
+      { key: "title", label: "Blocco", kind: "text", required: true },
+      { key: "answer", label: "Lo stavo facendo?", kind: "select", required: true, options: opts(["yes", "Sì"], ["no", "No"]) },
+    ],
+    title: (d) => s(d.title),
+    summary: (d) => (d.answer === "yes" ? "fatto" : "non fatto"),
+  },
   reflection: {
     type: "reflection",
     label: "Riflessioni serali",

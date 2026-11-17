@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { Habit, HabitLog } from "@/db/schema";
-import { isNative, syncHabitReminders, syncMotivation } from "@/lib/native";
+import { isNative, syncBlockChecks, syncHabitReminders, syncMotivation } from "@/lib/native";
 import { db } from "@/db/db";
 import { useApp } from "@/hooks/app";
 import { creditOf, isExpected, modeLookup, scheduledOn } from "@/lib/habits";
@@ -24,6 +24,12 @@ export function HabitReminders() {
     const [habits, logs] = JSON.parse(nativeSig) as [Habit[], HabitLog[]];
     syncHabitReminders(habits, new Map(logs.map((l) => [l.habitId, l])), today, settings.notifications).catch(() => {});
   }, [nativeSig, today, settings.notifications]);
+
+  const eventsSig = useLiveQuery(async () => (isNative ? JSON.stringify(await db.events.toArray()) : ""), []);
+  useEffect(() => {
+    if (!isNative || eventsSig === undefined) return;
+    syncBlockChecks(JSON.parse(eventsSig), today, settings.notifications).catch(() => {});
+  }, [eventsSig, today, settings.notifications]);
 
   useEffect(() => {
     syncMotivation(settings.motivationEvery ?? 2, settings.wakeTime, settings.bedTime, settings.notifications).catch(() => {});

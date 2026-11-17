@@ -6,7 +6,9 @@ import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
-import type { Habit, HabitLog } from "@/db/schema";
+import type { Habit, HabitLog, PlannerEvent } from "@/db/schema";
+import { answerCheck, isCheckable } from "./checks";
+import { occurrencesOn } from "./planner";
 import { addDays, hmToMin } from "./date";
 import { creditOf, scheduledOn } from "./habits";
 import { AYAT, QUOTES } from "./quotes";
@@ -20,6 +22,19 @@ const HABIT_ID_MAX = 9999;
 
 export async function initNative() {
   if (!isNative) return;
+  try {
+    // "Lo stai facendo?" notifications carry Sì / No buttons (long-press or pull down on iOS).
+    await LocalNotifications.registerActionTypes({
+      types: [{ id: CHECK_TYPE, actions: [{ id: "yes", title: "Sì" }, { id: "no", title: "No", destructive: true }] }],
+    });
+    await LocalNotifications.addListener("localNotificationActionPerformed", (a) => {
+      const x = a.notification.extra as { eventId?: string; date?: string; title?: string } | undefined;
+      if (!x?.eventId || !x.date || (a.actionId !== "yes" && a.actionId !== "no")) return;
+      answerCheck(x.eventId, x.date, x.title ?? "", a.actionId === "yes").catch(() => {});
+    });
+  } catch {
+    /* not critical */
+  }
   try {
     await StatusBar.setStyle({ style: Style.Dark });
   } catch {
@@ -87,7 +102,7 @@ export async function syncHabitReminders(habits: Habit[], todayLogs: Map<string,
       list.push({ id, title: h.name, body: h.description || "È il momento previsto.", schedule: { at } });
     }
   });
-  if (list.length) await LocalNotifications.schedule({ notifications: list.slice(0, 30) });
+  if (list.length) await LocalNotifications.schedule({ notifications: list.slice(0, 12) });
 }
 
 const MOTIV_BASE = 20000;
@@ -95,7 +110,7 @@ const MOTIV_BASE = 20000;
 /**
  * Motivational notifications every `everyHours` during waking hours, mixing
  * Comeback/discipline lines and ayat. iOS keeps at most 64 pending, so we plan
- * the next ~30 and top them up every time the app opens.
+ * the next ~10 (block checks get priority) and top them up every time the app opens.
  */
 export async function syncMotivation(everyHours: number, wake: string, bed: string, enabled: boolean) {
   if (!isNative) return;
@@ -107,8 +122,8 @@ export async function syncMotivation(everyHours: number, wake: string, bed: stri
   const end = hmToMin(bed) - 30;
   const list: { id: number; title: string; body: string; schedule: { at: Date } }[] = [];
   const now = new Date();
-  for (let d = 0; d < 14 && list.length < 30; d++) {
-    for (let m = start; m <= end && list.length < 30; m += everyHours * 60) {
+  for (let d = 0; d < 14 && list.length < 10; d++) {
+    for (let m = start; m <= end && list.length < 10; m += everyHours * 60) {
       const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, Math.floor(m / 60), m % 60);
       if (at.getTime() <= Date.now() + 60_000) continue;
       const n = Math.floor(at.getTime() / 3_600_000);
@@ -118,6 +133,38 @@ export async function syncMotivation(everyHours: number, wake: string, bed: stri
         title: ayah ? `Qur’an ${ayah.ref}` : "Unbeatable",
         body: ayah ? `${ayah.ar}
 ${ayah.it}` : lines[n % lines.length],
+        schedule: { at },
+      });
+    }
+  }
+  if (list.length) await LocalNotifications.schedule({ notifications: list });
+}
+
+const CHECK_TYPE = "BLOCK_CHECK";
+const CHECK_BASE = 30000;
+
+/**
+ * At the start of every planned block (except school and breaks) asks
+ * "Lo stai facendo?" with Sì / No buttons. Plans the next 40 occurrences.
+ */
+export async function syncBlockChecks(events: PlannerEvent[], today: string, enabled: boolean) {
+  if (!isNative) return;
+  const pending = await LocalNotifications.getPending();
+  await cancelNotifications(pending.notifications.filter((n) => n.id >= CHECK_BASE && n.id < CHECK_BASE + 1000).map((n) => n.id));
+  if (!enabled) return;
+  const list: { id: number; title: string; body: string; actionTypeId: string; extra: Record<string, string>; schedule: { at: Date } }[] = [];
+  for (let d = 0; d < 10 && list.length < 40; d++) {
+    const date = addDays(today, d);
+    const [y, m, day] = date.split("-").map(Number);
+    for (const o of occurrencesOn(events.filter(isCheckable), date)) {
+      const at = new Date(y, m - 1, day, Math.floor(o.start / 60), o.start % 60);
+      if (at.getTime() <= Date.now() + 30_000 || list.length >= 40) continue;
+      list.push({
+        id: CHECK_BASE + list.length,
+        title: `${o.event.start} · ${o.event.title}`,
+        body: "Lo stai facendo? Tieni premuto per rispondere Sì o No.",
+        actionTypeId: CHECK_TYPE,
+        extra: { eventId: o.event.id, date, title: o.event.title },
         schedule: { at },
       });
     }
