@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router";
-import { Keyboard, LayoutList, Pause, Search, Timer } from "lucide-react";
+import { Keyboard, LayoutList, PanelLeftClose, PanelLeftOpen, Pause, Search, Timer } from "lucide-react";
 import { useApp } from "@/hooks/app";
 import { useFocus } from "@/features/focus/FocusProvider";
 import { MOBILE_NAV, NAV, SETTINGS_NAV, type NavItem } from "./nav";
@@ -118,7 +118,7 @@ function SideLink({ n }: { n: NavItem }) {
   );
 }
 
-function Sidebar() {
+function Sidebar({ onClose }: { onClose: () => void }) {
   const { setPalette, setShortcuts, settings } = useApp();
   const domainItems = useNavItems().filter((n) => n.domain);
   const ModeIcon = MODE_ICON[settings.mode];
@@ -127,6 +127,9 @@ function Sidebar() {
       <div className="flex items-center gap-2.5 px-2 pb-4">
         <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="size-7" />
         <div className="text-[13px] font-semibold tracking-tight text-fg">Unbeatable</div>
+        <button type="button" onClick={onClose} aria-label="Chiudi la barra laterale" title="Chiudi la barra laterale" className="ml-auto grid size-7 place-items-center rounded-md text-subtle hover:bg-white/5 hover:text-fg">
+          <PanelLeftClose className="size-4" />
+        </button>
       </div>
 
       <button
@@ -227,10 +230,38 @@ export function Shell() {
     window.scrollTo(0, 0);
   }, [loc.pathname]);
 
+  const [sideOpen, setSideOpen] = useState(() => {
+    try {
+      return localStorage.getItem("dos:sidebar") !== "closed";
+    } catch {
+      return true;
+    }
+  });
+  const toggleSide = (open: boolean) => {
+    setSideOpen(open);
+    try {
+      localStorage.setItem("dos:sidebar", open ? "open" : "closed");
+    } catch {
+      /* optional */
+    }
+  };
+
   return (
     <div className="min-h-dvh">
-      <Sidebar />
-      <div className="min-[560px]:pl-[240px]">
+      {sideOpen ? (
+        <Sidebar onClose={() => toggleSide(false)} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => toggleSide(true)}
+          aria-label="Apri la barra laterale"
+          title="Apri la barra laterale"
+          className="fixed top-4 left-4 z-30 hidden size-9 place-items-center rounded-lg border border-line bg-surface text-subtle hover:text-fg min-[560px]:grid"
+        >
+          <PanelLeftOpen className="size-4" />
+        </button>
+      )}
+      <div className={sideOpen ? "min-[560px]:pl-[240px]" : "min-[560px]:pl-14"}>
         <MobileBar />
         <AudioPlayer />
         <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] min-[560px]:pt-9 min-[560px]:pb-12 sm:px-6 md:px-10">
