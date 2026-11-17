@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { AiPage } from "@/features/ai/AiPage";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router";
 import { Keyboard, LayoutList, Pause, Search, Timer } from "lucide-react";
 import { useApp } from "@/hooks/app";
@@ -124,7 +123,7 @@ function Sidebar() {
   const domainItems = useNavItems().filter((n) => n.domain);
   const ModeIcon = MODE_ICON[settings.mode];
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-line bg-[#070911]/85 backdrop-blur-xl px-3 py-4 md:flex">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-line bg-[#070911]/85 backdrop-blur-xl px-3 py-4 min-[560px]:flex">
       <div className="flex items-center gap-2.5 px-2 pb-4">
         <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="size-7" />
         <div className="text-[13px] font-semibold tracking-tight text-fg">Unbeatable</div>
@@ -182,7 +181,7 @@ function MobileBar() {
   const { setPalette, settings } = useApp();
   const ModeIcon = MODE_ICON[settings.mode];
   return (
-    <header className="sticky top-0 z-30 flex min-h-12 items-center gap-2 border-b border-line bg-bg/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
+    <header className="sticky top-0 z-30 flex min-h-12 items-center gap-2 border-b border-line bg-bg/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur min-[560px]:hidden">
       <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="size-6" />
       <span className="text-[13px] font-semibold tracking-tight">Unbeatable</span>
       <span className={cn("ml-1 flex items-center gap-1 text-[11px] text-subtle")}>
@@ -203,7 +202,7 @@ function MobileBar() {
 
 function MobileNav() {
   return (
-    <nav aria-label="Principale" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav aria-label="Principale" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur min-[560px]:hidden">
       <div className="grid grid-cols-5">
         {[...MOBILE_NAV, { to: "/more", label: "Altro", short: "Altro", icon: LayoutList, key: "" }].map((n) => (
           <NavLink
@@ -231,18 +230,17 @@ export function Shell() {
   return (
     <div className="min-h-dvh">
       <Sidebar />
-      <div className="md:pl-[240px]">
+      <div className="min-[560px]:pl-[240px]">
         <MobileBar />
         <AudioPlayer />
-        <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 md:px-10 md:pt-9 md:pb-12">
-          <div className="md:hidden">
+        <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] min-[560px]:pt-9 min-[560px]:pb-12 sm:px-6 md:px-10">
+          <div className="min-[560px]:hidden">
             <FocusPill className="mb-4" />
           </div>
           <ErrorBoundary key={loc.pathname}>
             <div className="animate-rise">
               <Routes>
                 <Route path="/" element={<CommandCenter />} />
-                <Route path="/ai" element={<AiPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/habits" element={<HabitsPage />} />
                 <Route path="/focus" element={<FocusPage />} />
