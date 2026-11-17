@@ -1,0 +1,8 @@
+{
+  "appId": "app.unbeatable.ios",
+  "appName": "Unbeatable",
+  "webDir": "dist",
+  "backgroundColor": "#06070d",
+  "ios": { "contentInset": "never", "backgroundColor": "#06070d" },
+  "plugins": { "LocalNotifications": { "iconColor": "#8b93ff" } }
+}

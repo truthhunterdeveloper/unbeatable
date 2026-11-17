@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Midnight indigo: cool near-black ground, indigo→violet accent, vivid but calm area colours. */
+  --color-bg: #06070d;
+  --color-surface: #0c0e17;
+  --color-elevated: #131624;
+  --color-hover: #1a1e30;
+  --color-line: rgb(148 160 255 / 0.08);
+  --color-line-strong: rgb(148 160 255 / 0.15);
+  --color-fg: #eef0fa;
+  --color-muted: #a6abc2;
+  --color-subtle: #757c97;
+  --color-faint: #4b516b;
+  --color-accent: #e5e5e5;
+  --color-accent-2: #e5e5e5;
+  --color-accent-soft: rgb(255 255 255 / 0.08);
+  --color-ok: #5fae84;
+  --color-warn: #c9a24a;
+  --color-danger: #d26464;
+
+  --radius-card: 14px;
+
+  --animate-fade-in: fade-in 0.18s ease-out both;
+  --animate-rise: rise 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-scale-in: scale-in 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-breathe: breathe 4s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html,
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+  ::selection {
+    background: rgb(255 255 255 / 0.2);
+  }
+  :focus-visible {
+    outline: 2px solid rgb(139 147 255 / 0.7);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.1) transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+}
+
+@utility eyebrow {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+}
+
+/* ── Motion (Phase 3 polish). Disabled by the reduced-motion rule above. ── */
+@keyframes quote-in { from { opacity: 0; transform: translateX(10px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes quote-in-back { from { opacity: 0; transform: translateX(-10px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes stagger-in { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes glow-drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-18px, 10px); } }
+
+@utility quote-in { animation: quote-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@utility quote-in-back { animation: quote-in-back 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Cards enter one after another; every card is fully visible at rest. */
+@utility stagger {
+  & > * { animation: stagger-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  & > *:nth-child(2) { animation-delay: 40ms; }
+  & > *:nth-child(3) { animation-delay: 80ms; }
+  & > *:nth-child(4) { animation-delay: 120ms; }
+  & > *:nth-child(5) { animation-delay: 160ms; }
+  & > *:nth-child(6) { animation-delay: 200ms; }
+  & > *:nth-child(7) { animation-delay: 240ms; }
+  & > *:nth-child(8) { animation-delay: 280ms; }
+  & > *:nth-child(n + 9) { animation-delay: 320ms; }
+}
+
+/* Soft drifting glow behind a quote, tinted with the area's colour. */
+@utility quote-glow {
+  &::before {
+    content: "";
+    position: absolute;
+    right: -60px;
+    top: -80px;
+    width: 220px;
+    height: 220px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, color-mix(in oklab, var(--q, #7d8bff) 22%, transparent), transparent 70%);
+    display: none;
+    pointer-events: none;
+  }
+}
+
+[role="checkbox"][aria-checked="true"] { animation: pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+main .card { transition: border-color 0.2s ease, transform 0.2s ease; }
+@media (hover: hover) { main .card:hover { border-color: var(--color-line-strong); } }

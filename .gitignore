@@ -1,0 +1,8 @@
+node_modules
+dist
+*.log
+ios/App/App/public
+ios/App/CapApp-SPM/.build
+ios/DerivedData
+*.xcuserstate
+xcuserdata
