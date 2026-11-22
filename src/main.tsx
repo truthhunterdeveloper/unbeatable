@@ -13,7 +13,21 @@ initNative();
 // Offline copy + automatic updates: when a new version is published, it is
 // downloaded in the background and applied on the next app open.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  import("virtual:pwa-register").then(({ registerSW }) => registerSW({ immediate: true })).catch(() => {});
+  import("virtual:pwa-register")
+    .then(({ registerSW }) =>
+      registerSW({
+        immediate: true,
+        // iPhone Home-screen apps are rarely reloaded: look for a new version
+        // every time the app comes back to the foreground, and every 30 minutes.
+        onRegisteredSW(_url, reg) {
+          if (!reg) return;
+          const check = () => reg.update().catch(() => {});
+          document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && check());
+          setInterval(check, 30 * 60_000);
+        },
+      }),
+    )
+    .catch(() => {});
 }
 void requestPersistence();
 setTimeout(() => void dailyBackup(), 3000);

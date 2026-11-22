@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import { Music, ArrowLeftRight, Bell, Database, Download, HardDrive, History, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
+import { RefreshCw, Music, ArrowLeftRight, Bell, Database, Download, HardDrive, History, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { motivationMinutes } from "@/lib/quotes";
 import { introAudioName, removeIntroAudio, saveIntroAudio } from "@/components/AudioPlayer";
 import { listSnapshots, mergeSync, shareSyncFile, snapshot, snapshotFile } from "@/db/sync";
@@ -167,6 +167,7 @@ export function SettingsPage() {
         </Card>
 
         <NotificationsCard />
+        <UpdateCard />
         <AudioCard />
 
         <div ref={dataRef} id="data" className="scroll-mt-8">
@@ -621,5 +622,38 @@ function MinutesInput({ value, max, onSave, ...p }: { value: number; max: number
       onBlur={commit}
       onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
     />
+  );
+}
+
+function UpdateCard() {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  async function check() {
+    setBusy(true);
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      if (!reg) return toast.info("Aggiornamenti automatici non attivi in questa versione.");
+      await reg.update();
+      const sw = reg.waiting ?? reg.installing;
+      if (!sw) return toast.success("Hai già l'ultima versione.");
+      toast.info("Nuova versione trovata: si ricarica…");
+      sw.postMessage({ type: "SKIP_WAITING" });
+      setTimeout(() => location.reload(), 1500);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Card>
+      <CardHeader title="Aggiornamenti" icon={<RefreshCw />} />
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 pb-4">
+        <p className="text-xs text-subtle">L'app si aggiorna da sola quando la apri. Se non vedi le ultime novità, controlla qui.</p>
+        <Button size="sm" onClick={check} disabled={busy}>
+          <RefreshCw /> Cerca aggiornamenti
+        </Button>
+      </div>
+    </Card>
   );
 }
