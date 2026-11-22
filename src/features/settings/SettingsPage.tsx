@@ -229,29 +229,7 @@ function NotificationsCard() {
         <Button variant={settings.notifications ? "secondary" : "primary"} size="sm" onClick={toggle}>
           {settings.notifications ? "Disattiva" : "Attiva"}
         </Button>
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] text-fg">Notifiche motivazionali</p>
-            <p className="mt-0.5 text-xs text-subtle">Frasi Comeback e ayat durante il giorno, tra sveglia e ora di dormire. Nell'app installata da Xcode arrivano anche ad app chiusa; nella versione web compaiono mentre l'app è aperta.</p>
-          </div>
-          <Select
-            className="w-auto"
-            value={String(motivationMinutes(settings))}
-            onChange={async (e) => {
-              await saveSettings({ ...settings, motivationMinutes: Number(e.target.value) });
-              toast.success("Frequenza salvata");
-            }}
-          >
-            <option value="10">Ogni 10 minuti</option>
-            <option value="15">Ogni 15 minuti</option>
-            <option value="30">Ogni 30 minuti</option>
-            <option value="60">Ogni ora</option>
-            <option value="120">Ogni 2 ore</option>
-            <option value="180">Ogni 3 ore</option>
-            <option value="240">Ogni 4 ore</option>
-            <option value="0">Disattivate</option>
-          </Select>
-        </div>
+        <MotivationSettings />
       </div>
     </Card>
   );
@@ -568,5 +546,56 @@ function AudioCard() {
         </div>
       </div>
     </Card>
+  );
+}
+
+function MotivationSettings() {
+  const { settings } = useApp();
+  const toast = useToast();
+  const save = async (patch: Partial<Settings>, msg = "Salvato") => {
+    try {
+      await saveSettings({ ...settings, ...patch });
+      toast.success(msg);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
+  const from = settings.motivationFrom ?? settings.wakeTime;
+  const to = settings.motivationTo ?? settings.bedTime;
+  return (
+    <div className="flex w-full flex-col gap-3 border-t border-line pt-3">
+      <div>
+        <p className="text-[13px] text-fg">Notifiche motivazionali</p>
+        <p className="mt-0.5 text-xs text-subtle">Frasi Comeback e ayat. Nell'app installata da Xcode arrivano anche ad app chiusa; nella versione web compaiono mentre l'app è aperta.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Field label="Frequenza">
+          {(p) => (
+            <Select {...p} value={String(motivationMinutes(settings))} onChange={(e) => save({ motivationMinutes: Number(e.target.value) }, "Frequenza salvata")}>
+              <option value="10">Ogni 10 minuti</option>
+              <option value="15">Ogni 15 minuti</option>
+              <option value="30">Ogni 30 minuti</option>
+              <option value="60">Ogni ora</option>
+              <option value="120">Ogni 2 ore</option>
+              <option value="180">Ogni 3 ore</option>
+              <option value="240">Ogni 4 ore</option>
+              <option value="0">Disattivate</option>
+            </Select>
+          )}
+        </Field>
+        <Field label="Dalle">
+          {(p) => <Input {...p} type="time" value={from} onChange={(e) => e.target.value && e.target.value < to && save({ motivationFrom: e.target.value }, "Orario salvato")} />}
+        </Field>
+        <Field label="Alle">
+          {(p) => <Input {...p} type="time" value={to} onChange={(e) => e.target.value && e.target.value > from && save({ motivationTo: e.target.value }, "Orario salvato")} />}
+        </Field>
+      </div>
+      <label className="flex items-start gap-2.5 text-[13px] text-fg">
+        <input type="checkbox" className="mt-0.5 accent-[#d4d4d4]" checked={settings.blockChecks !== false} onChange={(e) => save({ blockChecks: e.target.checked })} />
+        <span>
+          Check dei blocchi <span className="block text-xs text-subtle">All'inizio di ogni blocco del Planner (tranne scuola e pause) ti chiede "Lo stai facendo?" con Sì / No.</span>
+        </span>
+      </label>
+    </div>
   );
 }

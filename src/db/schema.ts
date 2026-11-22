@@ -44,6 +44,11 @@ export const SettingsSchema = z.object({
   motivationEvery: z.number().int().min(0).max(12).optional(),
   /** Minutes between motivational messages; 0 = off. Replaces motivationEvery. */
   motivationMinutes: z.number().int().min(0).max(720).optional(),
+  /** Window for motivational messages (default: wake → bed time). */
+  motivationFrom: hhmm.optional(),
+  motivationTo: hhmm.optional(),
+  /** "Lo stai facendo?" at the start of each block. Undefined means on. */
+  blockChecks: z.boolean().optional(),
   onboardedAt: timestamp.nullable(),
   createdAt: timestamp,
 });
@@ -126,6 +131,8 @@ export const HabitSchema = z.object({
   startDate: isoDate,
   order: z.number(),
   createdAt: timestamp,
+  /** Last edit; used so the newest version wins when syncing devices. */
+  updatedAt: timestamp.optional(),
 });
 export type Habit = z.infer<typeof HabitSchema>;
 
@@ -176,6 +183,8 @@ export const EventSchema = z.object({
   taskId: z.string().nullable(),
   notes: z.string().max(1000),
   createdAt: timestamp,
+  /** Last edit; used so the newest version wins when syncing devices. */
+  updatedAt: timestamp.optional(),
 });
 export type PlannerEvent = z.infer<typeof EventSchema>;
 

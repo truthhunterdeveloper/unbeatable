@@ -217,7 +217,7 @@ export async function createHabit(input: HabitInput): Promise<Habit> {
 export async function updateHabit(id: string, patch: Partial<Habit>): Promise<Habit> {
   const current = await db.habits.get(id);
   if (!current) throw new Error("Questa abitudine non esiste più");
-  const habit = validate(HabitSchema, { ...current, ...patch, id });
+  const habit = validate(HabitSchema, { ...current, ...patch, id, updatedAt: Date.now() });
   await db.habits.put(habit);
   return habit;
 }
@@ -281,7 +281,7 @@ export async function createEvent(input: EventInput): Promise<PlannerEvent> {
 export async function updateEvent(id: string, patch: Partial<PlannerEvent>): Promise<PlannerEvent> {
   const current = await db.events.get(id);
   if (!current) throw new Error("Questo blocco non esiste più");
-  const next = { ...current, ...patch, id };
+  const next = { ...current, ...patch, id, updatedAt: Date.now() };
   const ev = validate(EventSchema, next, eventRuleErrors(next));
   await db.events.put(ev);
   return ev;
@@ -305,7 +305,7 @@ export async function skipOccurrence(id: string, date: string): Promise<void> {
     await db.events.delete(id);
     return;
   }
-  if (!ev.skipDates.includes(date)) await db.events.put({ ...ev, skipDates: [...ev.skipDates, date] });
+  if (!ev.skipDates.includes(date)) await db.events.put({ ...ev, skipDates: [...ev.skipDates, date], updatedAt: Date.now() });
 }
 
 /* ───────────────────────── Focus ───────────────────────── */

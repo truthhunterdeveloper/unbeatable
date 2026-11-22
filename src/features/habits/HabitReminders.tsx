@@ -30,28 +30,30 @@ export function HabitReminders() {
   const eventsSig = useLiveQuery(async () => (isNative ? JSON.stringify(await db.events.toArray()) : ""), []);
   useEffect(() => {
     if (!isNative || eventsSig === undefined) return;
-    syncBlockChecks(JSON.parse(eventsSig), today, settings.notifications).catch(() => {});
-  }, [eventsSig, today, settings.notifications]);
+    syncBlockChecks(JSON.parse(eventsSig), today, settings.notifications && settings.blockChecks !== false).catch(() => {});
+  }, [eventsSig, today, settings.notifications, settings.blockChecks]);
 
   useEffect(() => {
-    syncMotivation(motivationMinutes(settings), settings.wakeTime, settings.bedTime, settings.notifications).catch(() => {});
-  }, [today, settings.motivationEvery, settings.motivationMinutes, settings.wakeTime, settings.bedTime, settings.notifications]);
+    syncMotivation(motivationMinutes(settings), settings.motivationFrom ?? settings.wakeTime, settings.motivationTo ?? settings.bedTime, settings.notifications).catch(() => {});
+  }, [today, settings.motivationEvery, settings.motivationMinutes, settings.motivationFrom, settings.motivationTo, settings.wakeTime, settings.bedTime, settings.notifications]);
 
   // Web / Home-screen app: while it is open, a motivational message every N minutes
   // (toast inside the app, plus a system notification when allowed).
   const toast = useToast();
   const every = motivationMinutes(settings);
+  const from = settings.motivationFrom ?? settings.wakeTime;
+  const to = settings.motivationTo ?? settings.bedTime;
   useEffect(() => {
     if (isNative || every <= 0) return;
     const t = setInterval(() => {
       const m = minutesNow();
-      if (m < hmToMin(settings.wakeTime) || m > hmToMin(settings.bedTime)) return;
+      if (m < hmToMin(from) || m > hmToMin(to)) return;
       const msg = motivationAt(Date.now(), every);
       toast.info(msg.body.split("\n").pop() ?? msg.body);
       if (settings.notifications) notify(msg.title, msg.body, "motivation");
     }, every * 60_000);
     return () => clearInterval(t);
-  }, [every, settings.wakeTime, settings.bedTime, settings.notifications, toast]);
+  }, [every, from, to, settings.notifications, toast]);
 
   useEffect(() => {
     if (isNative || !settings.notifications) return;

@@ -117,8 +117,8 @@ export async function syncMotivation(everyMin: number, wake: string, bed: string
   const pending = await LocalNotifications.getPending();
   await cancelNotifications(pending.notifications.filter((n) => n.id >= MOTIV_BASE && n.id < MOTIV_BASE + 1000).map((n) => n.id));
   if (!enabled || everyMin <= 0) return;
-  const start = hmToMin(wake) + 30;
-  const end = hmToMin(bed) - 30;
+  const start = hmToMin(wake);
+  const end = hmToMin(bed);
   const list: { id: number; title: string; body: string; schedule: { at: Date } }[] = [];
   const now = new Date();
   for (let d = 0; d < 14 && list.length < 10; d++) {
