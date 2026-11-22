@@ -15,6 +15,7 @@ import { weekScore } from "@/lib/analytics";
 import { EveningReflection } from "@/features/domains/PersonalPage";
 import { AyahCard, QuoteCard } from "@/components/QuoteCard";
 import { BlockChecks } from "./BlockChecks";
+import { PrayerCard } from "@/features/domains/PrayerCard";
 import type { QuoteArea } from "@/lib/quotes";
 import { MiniBarChart } from "@/components/charts";
 import { TaskRow, useTaskActions } from "@/features/tasks/TaskRow";
@@ -62,6 +63,7 @@ export function CommandCenter() {
       </header>
 
       <BlockChecks />
+      <PrayerCard className="mb-3" />
       <AyahCard className="mb-3" />
       <QuoteCard
         className="mb-5"

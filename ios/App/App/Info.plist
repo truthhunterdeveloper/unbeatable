@@ -10,6 +10,8 @@
 	<array>
 		<string>truthhunterdeveloper.github.io</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Serve per calcolare gli orari delle preghiere nella tua zona.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

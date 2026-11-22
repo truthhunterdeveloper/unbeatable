@@ -43,12 +43,19 @@ export const SettingsSchema = z.object({
   /** Hours between motivational notifications; 0 = off. Undefined means every 2 hours. */
   motivationEvery: z.number().int().min(0).max(12).optional(),
   /** Minutes between motivational messages; 0 = off. Replaces motivationEvery. */
-  motivationMinutes: z.number().int().min(0).max(720).optional(),
+  motivationMinutes: z.number().int().min(0).max(1440).optional(),
   /** Window for motivational messages (default: wake → bed time). */
   motivationFrom: hhmm.optional(),
   motivationTo: hhmm.optional(),
   /** "Lo stai facendo?" at the start of each block. Undefined means on. */
   blockChecks: z.boolean().optional(),
+  /** Minutes of warning before each block; 0 = off. Undefined means 5. */
+  preBlockMin: z.number().int().min(0).max(120).optional(),
+  /** Location for prayer times (set from the device's position). */
+  prayerLat: z.number().min(-90).max(90).optional(),
+  prayerLon: z.number().min(-180).max(180).optional(),
+  /** Notification at each prayer time. Undefined means on once a location is set. */
+  prayerAlerts: z.boolean().optional(),
   onboardedAt: timestamp.nullable(),
   createdAt: timestamp,
 });

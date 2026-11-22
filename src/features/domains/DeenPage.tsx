@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { BookOpen, Lock, Moon } from "lucide-react";
 import { useApp } from "@/hooks/app";
 import { AyahCard, QuoteCard } from "@/components/QuoteCard";
+import { PrayerCard } from "./PrayerCard";
 import { saveRecord } from "@/db/repo";
 import { RecordSection, useRecords } from "@/components/records";
 import { Card, CardHeader, PageHeader, Stat } from "@/components/ui/misc";
@@ -41,6 +42,7 @@ export function DeenPage() {
   return (
     <div>
       <PageHeader title="Deen" description="Uno spazio personale per costruire costanza nella pratica. Nessuna classifica, nessun punteggio: solo ciò che vuoi ricordare." />
+      <PrayerCard className="mb-3" />
       <AyahCard className="mb-3" />
       <QuoteCard areas={["deen"]} className="mb-5" />
       <div className="mb-5 flex gap-3 rounded-xl border border-line bg-white/[0.015] p-3.5 text-xs leading-relaxed text-subtle">

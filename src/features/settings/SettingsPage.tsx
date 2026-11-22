@@ -569,19 +569,8 @@ function MotivationSettings() {
         <p className="mt-0.5 text-xs text-subtle">Frasi Comeback e ayat. Nell'app installata da Xcode arrivano anche ad app chiusa; nella versione web compaiono mentre l'app è aperta.</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Field label="Frequenza">
-          {(p) => (
-            <Select {...p} value={String(motivationMinutes(settings))} onChange={(e) => save({ motivationMinutes: Number(e.target.value) }, "Frequenza salvata")}>
-              <option value="10">Ogni 10 minuti</option>
-              <option value="15">Ogni 15 minuti</option>
-              <option value="30">Ogni 30 minuti</option>
-              <option value="60">Ogni ora</option>
-              <option value="120">Ogni 2 ore</option>
-              <option value="180">Ogni 3 ore</option>
-              <option value="240">Ogni 4 ore</option>
-              <option value="0">Disattivate</option>
-            </Select>
-          )}
+        <Field label="Ogni quanti minuti" hint="0 = disattivate · 60 = ogni ora">
+          {(p) => <MinutesInput {...p} value={motivationMinutes(settings)} max={1440} onSave={(v) => save({ motivationMinutes: v }, "Frequenza salvata")} />}
         </Field>
         <Field label="Dalle">
           {(p) => <Input {...p} type="time" value={from} onChange={(e) => e.target.value && e.target.value < to && save({ motivationFrom: e.target.value }, "Orario salvato")} />}
@@ -590,6 +579,17 @@ function MotivationSettings() {
           {(p) => <Input {...p} type="time" value={to} onChange={(e) => e.target.value && e.target.value > from && save({ motivationTo: e.target.value }, "Orario salvato")} />}
         </Field>
       </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Field label="Avviso prima di ogni blocco (min)" hint="0 = nessun avviso">
+          {(p) => <MinutesInput {...p} value={settings.preBlockMin ?? 5} max={120} onSave={(v) => save({ preBlockMin: v }, "Avviso salvato")} />}
+        </Field>
+      </div>
+      <label className="flex items-start gap-2.5 text-[13px] text-fg">
+        <input type="checkbox" className="mt-0.5 accent-[#d4d4d4]" checked={settings.prayerAlerts !== false} onChange={(e) => save({ prayerAlerts: e.target.checked })} />
+        <span>
+          Avviso a ogni salah <span className="block text-xs text-subtle">Usa gli orari della tua zona (impostala dalla pagina Deen).</span>
+        </span>
+      </label>
       <label className="flex items-start gap-2.5 text-[13px] text-fg">
         <input type="checkbox" className="mt-0.5 accent-[#d4d4d4]" checked={settings.blockChecks !== false} onChange={(e) => save({ blockChecks: e.target.checked })} />
         <span>
@@ -597,5 +597,29 @@ function MotivationSettings() {
         </span>
       </label>
     </div>
+  );
+}
+
+/** Free number of minutes, saved when you leave the field or press Invio. */
+function MinutesInput({ value, max, onSave, ...p }: { value: number; max: number; onSave: (v: number) => void; id?: string }) {
+  const [v, setV] = useState(String(value));
+  useEffect(() => setV(String(value)), [value]);
+  const commit = () => {
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n) || n < 0 || n > max) return setV(String(value));
+    if (n !== value) onSave(n);
+  };
+  return (
+    <Input
+      {...p}
+      type="number"
+      inputMode="numeric"
+      min={0}
+      max={max}
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+    />
   );
 }

@@ -319,7 +319,7 @@ export const RECORD_TYPES: Record<string, RecordTypeDef> = {
       { key: "subjectId", label: "Materia", kind: "ref", refType: "subject", required: true },
       { key: "title", label: "Verifica", kind: "text", required: true },
       { key: "score", label: "Punteggio", kind: "number", required: true, min: 0, max: 100000 },
-      { key: "outOf", label: "Su", kind: "number", required: true, min: 1, max: 100000, initial: 100 },
+      { key: "outOf", label: "Su", kind: "number", required: true, min: 1, max: 100000, initial: 10 },
     ],
     title: (d) => s(d.title),
     summary: (d, ref) => join(ref(d.subjectId), `${s(d.score)}/${s(d.outOf)} (${Math.round((Number(d.score) / Number(d.outOf)) * 100)}%)`),

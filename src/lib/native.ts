@@ -12,6 +12,7 @@ import { occurrencesOn } from "./planner";
 import { addDays, hmToMin } from "./date";
 import { creditOf, scheduledOn } from "./habits";
 import { motivationAt } from "./quotes";
+import { prayerTimes } from "./prayer";
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -142,20 +143,33 @@ const CHECK_BASE = 30000;
 
 /**
  * At the start of every planned block (except school and breaks) asks
- * "Lo stai facendo?" with Sì / No buttons. Plans the next 40 occurrences.
+ * "Lo stai facendo?" with Sì / No buttons, plus an optional heads-up `preMin`
+ * minutes before. About 30 notifications are planned at a time.
  */
-export async function syncBlockChecks(events: PlannerEvent[], today: string, enabled: boolean) {
+export async function syncBlockChecks(events: PlannerEvent[], today: string, enabled: boolean, preMin = 5) {
   if (!isNative) return;
   const pending = await LocalNotifications.getPending();
   await cancelNotifications(pending.notifications.filter((n) => n.id >= CHECK_BASE && n.id < CHECK_BASE + 1000).map((n) => n.id));
-  if (!enabled) return;
-  const list: { id: number; title: string; body: string; actionTypeId: string; extra: Record<string, string>; schedule: { at: Date } }[] = [];
-  for (let d = 0; d < 10 && list.length < 40; d++) {
+  if (!enabled && preMin <= 0) return;
+  type N = { id: number; title: string; body: string; actionTypeId?: string; extra?: Record<string, string>; schedule: { at: Date } };
+  const list: N[] = [];
+  const cap = 30;
+  for (let d = 0; d < 10 && list.length < cap; d++) {
     const date = addDays(today, d);
     const [y, m, day] = date.split("-").map(Number);
     for (const o of occurrencesOn(events.filter(isCheckable), date)) {
       const at = new Date(y, m - 1, day, Math.floor(o.start / 60), o.start % 60);
-      if (at.getTime() <= Date.now() + 30_000 || list.length >= 40) continue;
+      if (list.length >= cap) continue;
+      const pre = new Date(at.getTime() - preMin * 60_000);
+      if (preMin > 0 && pre.getTime() > Date.now() + 30_000) {
+        list.push({
+          id: CHECK_BASE + 500 + list.length,
+          title: `Tra ${preMin} min: ${o.event.title}`,
+          body: o.event.category === "study" ? "Prepara libro e quaderno. Telefono in Full immersion." : "Preparati, si parte.",
+          schedule: { at: pre },
+        });
+      }
+      if (!enabled || at.getTime() <= Date.now() + 30_000) continue;
       list.push({
         id: CHECK_BASE + list.length,
         title: `${o.event.start} · ${o.event.title}`,
@@ -164,6 +178,25 @@ export async function syncBlockChecks(events: PlannerEvent[], today: string, ena
         extra: { eventId: o.event.id, date, title: o.event.title },
         schedule: { at },
       });
+    }
+  }
+  if (list.length) await LocalNotifications.schedule({ notifications: list });
+}
+
+const PRAYER_BASE = 40000;
+
+/** A notification at each of the five prayers for the next two days. */
+export async function syncPrayerAlerts(lat: number | undefined, lon: number | undefined, enabled: boolean) {
+  if (!isNative) return;
+  const pending = await LocalNotifications.getPending();
+  await cancelNotifications(pending.notifications.filter((n) => n.id >= PRAYER_BASE && n.id < PRAYER_BASE + 100).map((n) => n.id));
+  if (!enabled || lat == null || lon == null) return;
+  const list: { id: number; title: string; body: string; schedule: { at: Date } }[] = [];
+  for (let d = 0; d < 2; d++) {
+    const day = new Date();
+    day.setDate(day.getDate() + d);
+    for (const p of prayerTimes(lat, lon, day)) {
+      if (p.at.getTime() > Date.now() + 30_000) list.push({ id: PRAYER_BASE + list.length, title: `🕌 ${p.name}`, body: "È il momento della salah.", schedule: { at: p.at } });
     }
   }
   if (list.length) await LocalNotifications.schedule({ notifications: list });
