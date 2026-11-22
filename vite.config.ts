@@ -30,6 +30,10 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,svg,png,woff2,mp3}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         navigateFallback: "index.html",
+        // New versions take over immediately; the page reloads once to show them.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
