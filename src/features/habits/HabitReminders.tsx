@@ -7,6 +7,8 @@ import { useApp } from "@/hooks/app";
 import { creditOf, isExpected, modeLookup, scheduledOn } from "@/lib/habits";
 import { hmToMin } from "@/lib/date";
 import { notify } from "@/lib/notify";
+import { motivationAt, motivationMinutes } from "@/lib/quotes";
+import { useToast } from "@/components/ui/toast";
 
 /**
  * Fires a browser notification at a habit's reminder time if it isn't done yet.
@@ -32,8 +34,24 @@ export function HabitReminders() {
   }, [eventsSig, today, settings.notifications]);
 
   useEffect(() => {
-    syncMotivation(settings.motivationEvery ?? 2, settings.wakeTime, settings.bedTime, settings.notifications).catch(() => {});
-  }, [today, settings.motivationEvery, settings.wakeTime, settings.bedTime, settings.notifications]);
+    syncMotivation(motivationMinutes(settings), settings.wakeTime, settings.bedTime, settings.notifications).catch(() => {});
+  }, [today, settings.motivationEvery, settings.motivationMinutes, settings.wakeTime, settings.bedTime, settings.notifications]);
+
+  // Web / Home-screen app: while it is open, a motivational message every N minutes
+  // (toast inside the app, plus a system notification when allowed).
+  const toast = useToast();
+  const every = motivationMinutes(settings);
+  useEffect(() => {
+    if (isNative || every <= 0) return;
+    const t = setInterval(() => {
+      const m = minutesNow();
+      if (m < hmToMin(settings.wakeTime) || m > hmToMin(settings.bedTime)) return;
+      const msg = motivationAt(Date.now(), every);
+      toast.info(msg.body.split("\n").pop() ?? msg.body);
+      if (settings.notifications) notify(msg.title, msg.body, "motivation");
+    }, every * 60_000);
+    return () => clearInterval(t);
+  }, [every, settings.wakeTime, settings.bedTime, settings.notifications, toast]);
 
   useEffect(() => {
     if (isNative || !settings.notifications) return;
@@ -72,4 +90,9 @@ export function HabitReminders() {
   }, [settings.notifications, settings.mode, today, nowMin]);
 
   return null;
+}
+
+function minutesNow() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
 }

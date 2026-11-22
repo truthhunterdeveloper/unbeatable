@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { Music, ArrowLeftRight, Bell, Database, Download, HardDrive, History, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
+import { motivationMinutes } from "@/lib/quotes";
 import { introAudioName, removeIntroAudio, saveIntroAudio } from "@/components/AudioPlayer";
 import { listSnapshots, mergeSync, shareSyncFile, snapshot, snapshotFile } from "@/db/sync";
 import { Button } from "@/components/ui/button";
@@ -231,20 +232,23 @@ function NotificationsCard() {
         <div className="flex w-full flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-fg">Notifiche motivazionali</p>
-            <p className="mt-0.5 text-xs text-subtle">Frasi Comeback e ayat durante il giorno, tra sveglia e ora di dormire. Arrivano anche con l'app chiusa (solo iPhone).</p>
+            <p className="mt-0.5 text-xs text-subtle">Frasi Comeback e ayat durante il giorno, tra sveglia e ora di dormire. Nell'app installata da Xcode arrivano anche ad app chiusa; nella versione web compaiono mentre l'app è aperta.</p>
           </div>
           <Select
             className="w-auto"
-            value={String(settings.motivationEvery ?? 2)}
+            value={String(motivationMinutes(settings))}
             onChange={async (e) => {
-              await saveSettings({ ...settings, motivationEvery: Number(e.target.value) });
+              await saveSettings({ ...settings, motivationMinutes: Number(e.target.value) });
               toast.success("Frequenza salvata");
             }}
           >
-            <option value="1">Ogni ora</option>
-            <option value="2">Ogni 2 ore</option>
-            <option value="3">Ogni 3 ore</option>
-            <option value="4">Ogni 4 ore</option>
+            <option value="10">Ogni 10 minuti</option>
+            <option value="15">Ogni 15 minuti</option>
+            <option value="30">Ogni 30 minuti</option>
+            <option value="60">Ogni ora</option>
+            <option value="120">Ogni 2 ore</option>
+            <option value="180">Ogni 3 ore</option>
+            <option value="240">Ogni 4 ore</option>
             <option value="0">Disattivate</option>
           </Select>
         </div>

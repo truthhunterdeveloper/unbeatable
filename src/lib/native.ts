@@ -11,7 +11,7 @@ import { answerCheck, isCheckable } from "./checks";
 import { occurrencesOn } from "./planner";
 import { addDays, hmToMin } from "./date";
 import { creditOf, scheduledOn } from "./habits";
-import { AYAT, QUOTES } from "./quotes";
+import { motivationAt } from "./quotes";
 
 export const isNative = Capacitor.isNativePlatform();
 
@@ -108,31 +108,28 @@ export async function syncHabitReminders(habits: Habit[], todayLogs: Map<string,
 const MOTIV_BASE = 20000;
 
 /**
- * Motivational notifications every `everyHours` during waking hours, mixing
+ * Motivational notifications every `everyMin` minutes during waking hours, mixing
  * Comeback/discipline lines and ayat. iOS keeps at most 64 pending, so we plan
  * the next ~10 (block checks get priority) and top them up every time the app opens.
  */
-export async function syncMotivation(everyHours: number, wake: string, bed: string, enabled: boolean) {
+export async function syncMotivation(everyMin: number, wake: string, bed: string, enabled: boolean) {
   if (!isNative) return;
   const pending = await LocalNotifications.getPending();
   await cancelNotifications(pending.notifications.filter((n) => n.id >= MOTIV_BASE && n.id < MOTIV_BASE + 1000).map((n) => n.id));
-  if (!enabled || everyHours <= 0) return;
-  const lines = [...QUOTES.comeback, ...QUOTES.discipline];
+  if (!enabled || everyMin <= 0) return;
   const start = hmToMin(wake) + 30;
   const end = hmToMin(bed) - 30;
   const list: { id: number; title: string; body: string; schedule: { at: Date } }[] = [];
   const now = new Date();
   for (let d = 0; d < 14 && list.length < 10; d++) {
-    for (let m = start; m <= end && list.length < 10; m += everyHours * 60) {
+    for (let m = start; m <= end && list.length < 10; m += everyMin) {
       const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, Math.floor(m / 60), m % 60);
       if (at.getTime() <= Date.now() + 60_000) continue;
-      const n = Math.floor(at.getTime() / 3_600_000);
-      const ayah = n % 4 === 0 ? AYAT[n % AYAT.length] : null;
+      const msg = motivationAt(at.getTime(), everyMin);
       list.push({
         id: MOTIV_BASE + list.length,
-        title: ayah ? `Qur’an ${ayah.ref}` : "Unbeatable",
-        body: ayah ? `${ayah.ar}
-${ayah.it}` : lines[n % lines.length],
+        title: msg.title,
+        body: msg.body,
         schedule: { at },
       });
     }

@@ -42,6 +42,8 @@ export const SettingsSchema = z.object({
   prayerTracking: z.boolean().optional(),
   /** Hours between motivational notifications; 0 = off. Undefined means every 2 hours. */
   motivationEvery: z.number().int().min(0).max(12).optional(),
+  /** Minutes between motivational messages; 0 = off. Replaces motivationEvery. */
+  motivationMinutes: z.number().int().min(0).max(720).optional(),
   onboardedAt: timestamp.nullable(),
   createdAt: timestamp,
 });

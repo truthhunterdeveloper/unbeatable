@@ -402,3 +402,17 @@ export const AYAT: Ayah[] = [
   {"ref": "3:139", "surah": "Āl ʿImrān", "ar": "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ ٱلْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ", "tr": "Wa lā tahinū wa lā taḥzanū wa antumu al-aʿlawna in kuntum muʾminīn.", "it": "Non perdetevi d'animo e non affliggetevi: sarete voi ad avere il sopravvento, se siete credenti.", "lesson": "Le sconfitte non devono distruggere la tua determinazione."},
   {"ref": "20:114", "surah": "Ta-Ha", "ar": "وَقُل رَّبِّ زِدْنِى عِلْمًا", "tr": "Wa qul rabbi zidnī ʿilmā.", "it": "E di': “Signore mio, accresci la mia conoscenza”.", "lesson": "Non vergognarti di ciò che non sai. La conoscenza si acquisisce attraverso l'umiltà, lo studio e la costanza."},
 ];
+
+/** Minutes between motivational messages (0 = off); default every 2 hours. */
+export function motivationMinutes(s: { motivationMinutes?: number; motivationEvery?: number }): number {
+  return s.motivationMinutes ?? (s.motivationEvery != null ? s.motivationEvery * 60 : 120);
+}
+
+/** A motivational line for a moment in time: Comeback/discipline, or an ayah every fourth time. */
+export function motivationAt(t: number, everyMin: number): { title: string; body: string } {
+  const lines = [...QUOTES.comeback, ...QUOTES.discipline];
+  const n = Math.floor(t / 60_000 / Math.max(1, everyMin));
+  const ayah = n % 4 === 0 ? AYAT[n % AYAT.length] : null;
+  return ayah ? { title: `Qur’an ${ayah.ref}`, body: `${ayah.ar}
+${ayah.it}` } : { title: "Unbeatable", body: lines[n % lines.length] };
+}
