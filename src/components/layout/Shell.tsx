@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router";
-import { Keyboard, LayoutList, PanelLeftClose, PanelLeftOpen, Pause, Search, Timer } from "lucide-react";
+import { Keyboard, LayoutList, Menu, PanelLeftClose, PanelLeftOpen, Pause, Search, Timer } from "lucide-react";
 import { useApp } from "@/hooks/app";
 import { useFocus } from "@/features/focus/FocusProvider";
 import { MOBILE_NAV, NAV, SETTINGS_NAV, type NavItem } from "./nav";
@@ -118,12 +118,12 @@ function SideLink({ n }: { n: NavItem }) {
   );
 }
 
-function Sidebar({ onClose }: { onClose: () => void }) {
+function Sidebar({ onClose, drawer = false }: { onClose: () => void; drawer?: boolean }) {
   const { setPalette, setShortcuts, settings } = useApp();
   const domainItems = useNavItems().filter((n) => n.domain);
   const ModeIcon = MODE_ICON[settings.mode];
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-line bg-[#070911]/85 backdrop-blur-xl px-3 py-4 min-[560px]:flex">
+    <aside className={cn("fixed inset-y-0 left-0 w-[240px] flex-col border-r border-line px-3 py-4", drawer ? "z-50 flex bg-[#070911] pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] animate-[drawer-in_0.2s_ease-out]" : "z-30 hidden bg-[#070911]/85 backdrop-blur-xl min-[560px]:flex")}>
       <div className="flex items-center gap-2.5 px-2 pb-4">
         <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="size-7" />
         <div className="text-[13px] font-semibold tracking-tight text-fg">Unbeatable</div>
@@ -180,11 +180,14 @@ function Sidebar({ onClose }: { onClose: () => void }) {
   );
 }
 
-function MobileBar() {
+function MobileBar({ onMenu }: { onMenu: () => void }) {
   const { setPalette, settings } = useApp();
   const ModeIcon = MODE_ICON[settings.mode];
   return (
     <header className="sticky top-0 z-30 flex min-h-12 items-center gap-2 border-b border-line bg-bg/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur min-[560px]:hidden">
+      <button type="button" onClick={onMenu} aria-label="Apri il menu" className="-ml-1.5 grid size-9 place-items-center rounded-lg text-muted hover:bg-white/5">
+        <Menu className="size-5" />
+      </button>
       <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="size-6" />
       <span className="text-[13px] font-semibold tracking-tight">Unbeatable</span>
       <span className={cn("ml-1 flex items-center gap-1 text-[11px] text-subtle")}>
@@ -246,8 +249,17 @@ export function Shell() {
     }
   };
 
+  const [drawer, setDrawer] = useState(false);
+  useEffect(() => setDrawer(false), [loc.pathname]);
+
   return (
     <div className="min-h-dvh">
+      {drawer ? (
+        <div className="min-[560px]:hidden">
+          <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setDrawer(false)} aria-hidden />
+          <Sidebar drawer onClose={() => setDrawer(false)} />
+        </div>
+      ) : null}
       {sideOpen ? (
         <Sidebar onClose={() => toggleSide(false)} />
       ) : (
@@ -262,7 +274,7 @@ export function Shell() {
         </button>
       )}
       <div className={sideOpen ? "min-[560px]:pl-[240px]" : "min-[560px]:pl-14"}>
-        <MobileBar />
+        <MobileBar onMenu={() => setDrawer(true)} />
         <AudioPlayer />
         <main className="mx-auto w-full max-w-[1180px] px-4 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] min-[560px]:pt-9 min-[560px]:pb-12 sm:px-6 md:px-10">
           <div className="min-[560px]:hidden">
