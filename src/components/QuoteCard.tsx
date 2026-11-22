@@ -17,14 +17,15 @@ export function QuoteCard({ areas, className, rotate = false, variant = "card" }
   const list = QUOTES[area];
   const idx = (((dailyIndex(area, today) + offset) % list.length) + list.length) % list.length;
 
+  // A new quote every 10 seconds; with several areas it also moves to the next area.
   useEffect(() => {
-    if (!rotate) return;
     const t = setInterval(() => {
       setDir(1);
-      setAreaIdx((i) => i + 1);
-    }, 12000);
+      if (rotate && areas.length > 1) setAreaIdx((i) => i + 1);
+      setOffset((o) => o + 1);
+    }, 10_000);
     return () => clearInterval(t);
-  }, [rotate]);
+  }, [rotate, areas.length]);
 
   const step = (d: 1 | -1) => {
     setDir(d);
