@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import { RefreshCw, Music, ArrowLeftRight, Bell, Database, Download, HardDrive, History, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
+import { ClipboardPaste, RefreshCw, Music, ArrowLeftRight, Bell, Database, Download, HardDrive, History, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { motivationMinutes } from "@/lib/quotes";
 import { introAudioName, removeIntroAudio, saveIntroAudio } from "@/components/AudioPlayer";
-import { listSnapshots, mergeSync, shareSyncFile, snapshot, snapshotFile } from "@/db/sync";
+import { decodeSyncCode, listSnapshots, mergeSync, shareSyncFile, snapshot, snapshotFile } from "@/db/sync";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select } from "@/components/ui/field";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Badge, Card, CardHeader, PageHeader } from "@/components/ui/misc";
 import { Modal } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
@@ -388,6 +388,8 @@ function SyncPanel() {
   const ref = useRef<HTMLInputElement>(null);
   const [snaps, setSnaps] = useState<{ id?: number; at: number; reason: string }[]>([]);
   const [restore, setRestore] = useState<number | null>(null);
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasted, setPasted] = useState("");
   const last = (() => {
     try {
       return localStorage.getItem("dos:lastSync");
@@ -438,7 +440,43 @@ function SyncPanel() {
             <Download /> Unisci file di sync…
           </Button>
           <input ref={ref} type="file" accept="application/json,.json" className="hidden" onChange={(e) => onMerge(e.target.files?.[0])} />
+          <Button onClick={() => setPasteOpen(true)}>
+            <ClipboardPaste /> Incolla codice…
+          </Button>
         </div>
+        <Modal
+          open={pasteOpen}
+          onOpenChange={setPasteOpen}
+          title="Incolla un codice o un file di sync"
+          size="sm"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setPasteOpen(false)}>
+                Annulla
+              </Button>
+              <Button
+                variant="primary"
+                disabled={!pasted.trim()}
+                onClick={async () => {
+                  try {
+                    const r = await mergeSync(await decodeSyncCode(pasted));
+                    toast.success(`Importato: ${r.added} nuovi, ${r.updated} aggiornati, ${r.removed} eliminati`);
+                    setPasted("");
+                    setPasteOpen(false);
+                    reload();
+                  } catch (e) {
+                    toast.error(e instanceof SyntaxError ? "Codice non valido: copialo tutto, dall'inizio alla fine." : errorMessage(e));
+                  }
+                }}
+              >
+                Importa
+              </Button>
+            </>
+          }
+        >
+          <p className="mb-2 text-[13px] text-muted">Incolla il codice ricevuto (per esempio la tua routine). Viene unito ai tuoi dati: non cancella niente e prima fa un backup.</p>
+          <Textarea rows={6} value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="UNB1:…" className="font-mono text-xs" />
+        </Modal>
       </div>
       <div>
         <h3 className="flex items-center gap-2 text-sm font-medium text-fg">

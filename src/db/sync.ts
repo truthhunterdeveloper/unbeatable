@@ -186,3 +186,16 @@ export async function shareSyncFile(): Promise<void> {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/**
+ * Accepts a pasted sync file: plain JSON, or a compact code "UNB1:" + base64(gzip(JSON)).
+ * Handy on iPhone, where picking files inside a Home-screen app is awkward.
+ */
+export async function decodeSyncCode(text: string): Promise<unknown> {
+  const t = text.trim();
+  if (t.startsWith("{")) return JSON.parse(t);
+  const b64 = t.replace(/^UNB1:/, "").replace(/\s+/g, "");
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return JSON.parse(await new Response(stream).text());
+}
